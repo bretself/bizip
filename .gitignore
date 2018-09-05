@@ -24,6 +24,7 @@ wheels/
 .installed.cfg
 *.egg
 MANIFEST
+data/
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -102,3 +103,8 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+# Temporary data files before cleaning up the conversion code:
+*.bat
+*.json
+*.csv
