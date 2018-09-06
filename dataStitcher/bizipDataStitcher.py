@@ -8,6 +8,7 @@ def printUsage():
     print('\t-bizDir businessReportPath ')
     print('\t-popFile populationMappingFile (zip,population) ')
     print('\t-o outputFilePath (omit for stdout) ')
+    print('\t-state stateToUse (omit to use all data available) ')
 
 def main():
 
@@ -15,6 +16,9 @@ def main():
     popFilename = ''
     outputFilename = ''
     writeToFile = False
+
+    stateToUse = ''
+    filterByState = False;
 
     if '-bizDir' in sys.argv:
         bizDirFilename = sys.argv[sys.argv.index('-bizDir') + 1]
@@ -32,9 +36,13 @@ def main():
         outputFilename = sys.argv[sys.argv.index('-o') + 1]
         writeToFile = True
 
+    if '-state' in sys.argv:
+        stateToUse = sys.argv[sys.argv.index('-state') + 1]
+        filterByState = True
+
     print('Using biz data from: ' + bizDirFilename)
 
-    bizData = processBizData(bizDirFilename)
+    bizData = processBizData(bizDirFilename, filterByState, stateToUse)
 
     zipToPopMap = loadPopulationData(popFilename)
 
@@ -86,7 +94,7 @@ def assembleOutput(bizData, zipToPopMap):
 
     return lines
 
-def processBizData(bizDirFilename):
+def processBizData(bizDirFilename, filterByState = False, stateToUse = ''):
 
     bizSummary = {}
     zipToCity = {}
@@ -96,15 +104,20 @@ def processBizData(bizDirFilename):
             print('Filename: ' + filename)
             bizReader = csv.DictReader(csvfile, delimiter=',', quotechar='"')
             for row in bizReader:
-                print(row['Business Name'])
 
-                #keep the last one
-                zipToCity[row['Zip Code']] = row['City']
+                #Filters
+                if(row['Associated Name Type'].strip() == 'PRINCIPAL PLACE OF BUSINESS'
+                    and ( not filterByState or row['State'] == stateToUse)):
 
-                if(row['Zip Code'] in bizSummary):
-                    bizSummary[row['Zip Code']] = bizSummary[row['Zip Code']] + 1;
-                else:
-                    bizSummary[row['Zip Code']] = 1
+                    print(row['Business Name'])
+
+                    #keep the last one
+                    zipToCity[row['Zip Code']] = row['City']
+
+                    if(row['Zip Code'] in bizSummary):
+                        bizSummary[row['Zip Code']] = bizSummary[row['Zip Code']] + 1;
+                    else:
+                        bizSummary[row['Zip Code']] = 1
 
     return {
         'zipBusinessCountMap': bizSummary,
